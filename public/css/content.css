@@ -1,0 +1,201 @@
+#trolliPlusButton {
+     position: fixed;
+     display: inline-block;
+     vertical-align: middle;
+     right: 5px;
+     top: 150px;
+     color: white;
+     background-color: #ee7858;
+     height: 35px;
+     width: 40px;
+     font-weight: 400;
+     user-select: none;
+     font-size: 32px;
+     border-radius: 0.25rem;
+     line-height: 0;
+     border: none;
+     outline: none;
+     z-index: 10000;
+     cursor: pointer;
+}
+@font-face {
+     font-family: nunitosans;
+
+     font-style: normal;
+     font-weight: 400;
+     src: url("chrome-extension://__MSG_@@extension_id__/font/nunito.ttf");
+}
+
+#yourtolli-widgetcontainer * {
+     box-sizing: border-box;
+
+     font-family: "nunitosans", sans-serif !important;
+}
+#yourtolli-widgetcontainer {
+     height: 113px !important;
+     width: 400px !important;
+     position: fixed !important;
+     z-index: 100000 !important;
+     bottom: 10px !important;
+     right: 8px !important;
+     border: 1px solid lightgray !important;
+     background-color: white !important;
+     border-radius: 5px !important;
+}
+
+#yourtolli-body {
+     font-family: "nunitosans", sans-serif !important;
+     padding: 8px !important;
+     display: flex !important;
+     flex-direction: row !important;
+     width: 400px !important;
+}
+
+#yourtolli-body #yourtolli-imgcontainer {
+     display: inline-block !important;
+     width: 80px !important;
+     height: 95px !important;
+     display: flex !important;
+     align-items: center !important;
+     justify-content: center;
+     overflow-y: hidden !important;
+     overflow-x: hidden !important;
+}
+#yourtolli-body #yourtolli-productimg {
+     display: block !important;
+     margin: auto !important;
+     max-width: 79px !important;
+     max-height: 94px !important;
+     padding: 0 !important;
+     margin: 0 !important;
+     margin-top: 0 !important;
+     margin-bottom: 0 !important;
+}
+#yourtolli-body #yourtolli-shopimg {
+     height: 20px !important;
+     width: auto !important;
+     max-width: 100% !important;
+
+     display: block !important;
+     margin: auto !important;
+     margin-top: 5px !important;
+}
+
+#yourtolli-body #yourtolli-maincontainer {
+     padding-left: 10px !important;
+     font-size: 17px !important;
+     line-height: 21px !important;
+
+     display: inline-block !important;
+     width: 80% !important;
+
+     /* background-color: yellow!important; */
+}
+
+#yourtolli-body #yourtolli-top {
+     height: 40px !important;
+     display: flex !important;
+}
+
+#yourtolli-body #yourtolli-bottom {
+     margin-top: 2px !important;
+}
+#yourtolli-body #yourtolli-title {
+     width: 190px !important;
+     /* background: red; */
+     /* background: blue!important; */
+     display: inline-block !important;
+     height: 50px !important;
+     overflow-y: hidden !important;
+     overflow-x: hidden !important;
+     color: black !important;
+     display: flex !important;
+
+     align-items: center !important;
+
+     font-size: 16.5px !important;
+     /* text-transform: lowercase !important; */
+     /* font-weight: 600; */
+     /* background: red; */
+
+     /* overflow: hidden !important;
+     text-overflow: ellipsis !important; */
+}
+#yourtolli-body #yourtolli-title::first-letter {
+     /* text-transform: uppercase !important; */
+}
+
+#yourtolli-body #yourtolli-label {
+     font-size: 12.5px !important;
+     font-family: "nunitosans", sans-serif !important;
+     color: #949494 !important;
+     font-weight: 400;
+     display: inline;
+}
+
+#yourtolli-body #yourtolli-price {
+     color: black !important;
+     padding-top: 15px !important;
+     padding-right: 10px !important;
+
+     font-size: 19px !important;
+     font-weight: 400 !important;
+     width: 110px !important;
+     text-align: center !important;
+     /* background: red!important; */
+     display: inline-block !important;
+}
+
+#yourtolli-body #yourtolli-dropdown {
+     background-color: transparent !important;
+     padding: 4px 8px !important;
+     border: none !important;
+     width: 100% !important;
+     font-size: 15px !important;
+     font-family: "nunitosans", sans-serif !important;
+     outline: none !important;
+     cursor: pointer !important;
+     text-transform: capitalize !important;
+     width: 148px !important;
+     appearance: auto !important;
+     margin-top: 0 !important;
+}
+#yourtolli-body #yourtolli-options {
+     background-color: transparent !important;
+     font-family: "nunitosans", sans-serif !important;
+}
+
+#yourtolli-body #yourtolli-basketdropdown {
+     border: 1px solid #dfdfdf !important;
+     border-radius: 5px !important;
+     width: 160px !important;
+     max-width: 160px !important;
+     padding-right: 10px !important;
+     background: white !important;
+
+     height: 30px !important;
+}
+#yourtolli-body #yourtolli-formcontainer {
+     display: flex !important;
+}
+
+#yourtolli-body #yourtolli-addtotrollibtn {
+     margin-left: 5px !important;
+     width: 130px !important;
+     font-family: "nunitosans", sans-serif !important;
+     background-color: #df7e60 !important;
+     border: none !important;
+     color: white !important;
+     border-radius: 5px !important;
+     font-size: 14.5px !important;
+     text-transform: initial !important;
+     cursor: pointer !important;
+     padding: 0px !important;
+     height: 30px !important;
+     font-weight: 500 !important;
+}
+#yourtolli-body #yourtolli-addtotrollibtn.disabledbtn {
+     background-color: grey !important;
+     opacity: 0.5;
+     color: white !important;
+}

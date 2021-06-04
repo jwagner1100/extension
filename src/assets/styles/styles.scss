@@ -1,0 +1,59 @@
+@import "./theme.scss";
+@import url("https://fonts.googleapis.com/css2?family=Nunito+Sans:wght@300;400;600;700&display=swap");
+@import url("https://cdn.jsdelivr.net/npm/@mdi/font@5.8.55/css/materialdesignicons.min.css");
+
+html {
+     width: 385px;
+     border-radius: 50px;
+}
+* {
+     font-family: "Nunito Sans", sans-serif !important;
+}
+
+.columns,
+.column {
+     margin: 0 !important;
+     padding: 0 !important;
+}
+
+.capitalize {
+     text-transform: lowercase !important;
+}
+.capitalize::first-letter {
+     text-transform: uppercase !important;
+}
+
+.modal-background,
+.dropdown .background {
+     backdrop-filter: blur(1.3px);
+}
+.modal-close {
+     display: none;
+}
+
+.dropdown-item::first-letter {
+     text-transform: uppercase;
+}
+
+h3 {
+     text-transform: uppercase;
+     color: rgba(148, 148, 148, 1);
+     font-size: 12px;
+     letter-spacing: 1px;
+     margin-bottom: 10px;
+}
+.dropdown-content {
+     padding: 15px;
+     max-width: 250px;
+     margin: auto;
+
+     a.dropdown-item {
+          border-radius: 5px !important;
+          margin-bottom: 8px;
+          padding: 10px 15px !important;
+     }
+}
+
+.modal .modal-content  {
+     border-radius: 4px !important;
+}

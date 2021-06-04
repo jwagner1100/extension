@@ -1,0 +1,33 @@
+@import "~bulma/sass/utilities/_all";
+$primary: #f2836b;
+$primary-invert: findColorInvert($primary);
+
+$secondary_light: #222222;
+$secondary_light_2: #4e4e4e;
+
+$secondary_dark: findColorInvert($secondary_light);
+$secondary_dark_2: findColorInvert($secondary_light_2);
+
+// $secondary_dark: #fff;
+
+$tertiary_light: #73738d;
+$tertiary_dark: #fff;
+$tertiary_dark: findColorInvert($tertiary_light);
+
+/*================================ bg ==============================*/
+
+$bg_light: #fffbfb;
+$bg_secondary_light: #fff;
+
+$bg_dark: #08102b;
+$bg_dark: #1f2023;
+$bg_secondary_dark: lighten($bg_dark, 3);
+/*================================ shadows ==============================*/
+
+$shadow_light: #f2f5fa;
+$shadow_dark: rgba(0, 0, 0, 0.2);
+
+// $shadow_dark: #000;
+
+$modal-background-background-color: rgba(196, 196, 196, 0.28);
+$dropdown-background-color: rgba(196, 196, 196, 0.28);
