@@ -2,7 +2,9 @@
      <div v-if="item">
           <div class="columns is-mobile is-vcentered trolliItem">
                <div class="imgcol  " @click="openInTab">
-                    <div class="productimg  "><img :src="item.imageUrl" alt="" /></div>
+                    <div class="productimg  ">
+                         <img :src="item.imageUrl" alt="" loading=lazy />
+                    </div>
                     <div class="shopimg">
                          <img v-if="item.website == 'Asos'" class="Asos" src="@/assets/logos/asos.png" alt="" />
                          <img v-else-if="item.website == 'Currys'" class="Currys" src="@/assets/logos/currys.png" alt="" />
@@ -26,6 +28,7 @@
                          <img v-else-if="item.website == 'Shein'" class="Shein" src="@/assets/logos/shein.png" alt="" />
                          <img v-else-if="item.website == 'Office'" class="Office" src="@/assets/logos/office.png" alt="" />
                          <img v-else-if="item.website == 'Uniqlo'" class="Uniqlo" src="@/assets/logos/uniqlo.png" alt="" />
+                         <img v-else-if="item.website == 'Matchesfashion'" class="Matchesfashion" src="@/assets/logos/matchesfashion.png" alt="" />
                     </div>
                </div>
                <div class="column    ">
@@ -104,7 +107,7 @@
                          <div class="currentPrice">£{{ item.firstPrice | priceFormatter }}</div>
                     </template>
                </div>
-               <div class="  deletecol  " @click.stop="deleteItem(item._id)">
+               <div class="  deletecol  " @click.stop="deleteItem()">
                     <svg width="18" height="18" viewBox="0 0 35 35" fill="none" xmlns="http://www.w3.org/2000/svg" class="deletebtn">
                          <path
                               d="M18.8741 4.03845C21.4014 4.03845 23.4667 6.01661 23.6062 8.50909L23.6137 8.77804H31.2699C31.874 8.77804 32.3637 9.26773 32.3637 9.87179C32.3637 10.4255 31.9521 10.8831 31.4184 10.9555L31.2699 10.9655H30.1091L28.2423 29.9519C28.0488 31.9193 26.4551 33.4385 24.5071 33.5617L24.2511 33.5697H13.4971C11.5202 33.5697 9.85234 32.1325 9.53907 30.2059L9.50598 29.9519L7.63765 10.9655H6.47827C5.92454 10.9655 5.46693 10.5541 5.39451 10.0202L5.38452 9.87179C5.38452 9.31806 5.79599 8.86045 6.32986 8.78802L6.47827 8.77804H14.1345C14.1345 6.16043 16.2565 4.03845 18.8741 4.03845ZM27.9114 10.9655H9.83535L11.683 29.7378C11.7686 30.6087 12.4579 31.2864 13.3118 31.3729L13.4971 31.3822H24.2511C25.1263 31.3822 25.8681 30.7626 26.0379 29.9212L26.0653 29.7378L27.9114 10.9655ZM21.4262 14.976C21.9799 14.976 22.4375 15.3874 22.51 15.9213L22.5199 16.0697V26.278C22.5199 26.8821 22.0302 27.3718 21.4262 27.3718C20.8725 27.3718 20.4148 26.9602 20.3424 26.4265L20.3324 26.278V16.0697C20.3324 15.4656 20.8221 14.976 21.4262 14.976ZM16.322 14.976C16.8757 14.976 17.3334 15.3874 17.4059 15.9213L17.4158 16.0697V26.278C17.4158 26.8821 16.9261 27.3718 16.322 27.3718C15.7683 27.3718 15.3107 26.9602 15.2383 26.4265L15.2283 26.278V16.0697C15.2283 15.4656 15.718 14.976 16.322 14.976ZM18.8741 6.22595C17.5351 6.22595 16.4369 7.25715 16.3305 8.56872L16.322 8.77804H21.4262C21.4262 7.36856 20.2836 6.22595 18.8741 6.22595Z"
@@ -117,6 +120,7 @@
 
 <script>
      import apis from "../../apis/apis.js";
+     import mixpanel from "../../mixpanel";
      export default {
           data() {
                return {
@@ -147,8 +151,10 @@
                     chrome.tabs.create({ active: true, url: this.item.referenceUrl });
                },
 
-               deleteItem(id) {
-                    this.$emit("deleteItem", id);
+               deleteItem() {
+                    this.$emit("deleteItem", this.item._id);
+
+                    mixpanel.deleteItem(this.item);
                },
           },
      };
@@ -256,8 +262,8 @@
           }
           .deletecol {
                text-align: center;
-               padding-right: 7px;
-               padding-left: 10px;
+               padding-right: 14px;
+               padding-left: 3px;
                height: 50px;
                display: flex; /* establish flex container */
                // flex-direction: column; /* make main axis vertical */

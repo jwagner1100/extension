@@ -1,10 +1,10 @@
 import apis from "./apis/apis.js";
-
+import mixpanel from "./mixpanel";
 let user_signed_in = false;
 
 const CLIENT_ID = "239651112786-2hfq7alul07n77o2e37kiet05pl7g0ir.apps.googleusercontent.com";
 const RESPONSE_TYPE = "id_token";
-const REDIRECT_URI = "https://gipbodlkfmdclfphffipjppbheidgggh.chromiumapp.org";
+const REDIRECT_URI = "https://fmaceobkgpcdmljgdicmicdahpdkamem.chromiumapp.org";
 const STATE = "asdklfjsd";
 const SCOPE = "profile email";
 const PROMPT = "consent";
@@ -40,22 +40,21 @@ browser.runtime.onMessage.addListener(function(request, sender, sendResponse) {
                     },
                     async function(redirect_url) {
                          // console.log(redirect_url);
-
-                         let id_token = redirect_url.substring(redirect_url.indexOf("id_token=") + 9);
-                         // console.log(id_token, "token");
-                         id_token = id_token.substring(0, id_token.indexOf("&"));
-
                          try {
+                              let id_token = redirect_url.substring(redirect_url.indexOf("id_token=") + 9);
+                              // console.log(id_token, "token");
+                              id_token = id_token.substring(0, id_token.indexOf("&"));
+
                               // console.log("bab");
                               let resp = await apis.loginUser(id_token);
-                          
+
                               let token = resp.data.token;
                               let name = resp.data.user.name;
                               let picture = resp.data.user.picture;
                               let email = resp.data.user.email;
 
                               chrome.storage.sync.set({ userToken: token, userName: name, userPicture: picture, userEmail: email }, () => {
-                                   // console.log("signedin");
+                                   mixpanel.login(email, name, picture);
                               });
                          } catch (e) {
                               sendResponse({ resp: "failed" });
@@ -78,8 +77,8 @@ browser.runtime.onMessage.addListener(function(request, sender, sendResponse) {
                // };
                // chrome.identity.launchWebAuthFlow({ url: create_oauth2_url(), interactive: true }, (responseURL) => console.log(responseURL));
           }
-     } else if (request.message == "logout") {
-     } else if (request.message == "isUserSignedIn") {
+     } else if (request.message == "trolliItemAdded") {
+          mixpanel.addItem(request.item, "Website Widget");
      }
 });
 
@@ -100,10 +99,16 @@ browser.runtime.onMessage.addListener(function(request, sender, sendResponse) {
 chrome.tabs.onUpdated.addListener(function(tabId, changeInfo, tab) {
      // read changeInfo data and do something with it
      // like send the new url to contentscripts.js
-     if (changeInfo.url) {
-          chrome.tabs.sendMessage(tabId, {
-               message: "restart",
-               url: changeInfo.url,
-          });
+
+     console.log(changeInfo);
+     if (changeInfo.status !== "complete" && changeInfo.status !== "loading") {
+          console.log("page url change");
+
+          setTimeout(() => {
+               // chrome.tabs.sendMessage(tabId, {
+               //      message: "restart",
+               //      url: changeInfo.url,
+               // });
+          }, 3000);
      }
 });

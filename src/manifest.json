@@ -1,10 +1,36 @@
 {
      "manifest_version": 2,
-     "name": "__MSG_extName__",
-     "homepage_url": "http://localhost:8080/",
-     "description": "A Vue Browser Extension",
+     "name": "YourTrolli",
+     "homepage_url": "https://yourtrolli.com",
+     "description": "The only shopping cart you need on the internet",
      "default_locale": "en",
-     "permissions": ["activeTab", "<all_urls>", "*://*/*", "storage", "cookies", "identity", "http://*/*", "https://*/*", "unlimitedStorage"],
+     "permissions": [
+          "activeTab",
+          "storage",
+          "identity",
+          "https://amazon.co.uk/*",
+          "https://currys.co.uk/*",
+          "https://ikea.com/*",
+          "https://asos.com/*",
+          "https://net-a-porter.com/*",
+          "https://wayfair.co.uk/*",
+          "https://zara.com/*",
+          "https://johnlewis.com/*",
+          "https://made.com/*",
+          "https://habitat.co.uk/*",
+          "https://hm.com/*",
+          "https://selfridges.com/*",
+          "https://next.co.uk/*",
+          "https://endclothing.com/*",
+          "https://urbanoutfitters.com/*",
+          "https://sportsdirect.com/*",
+          "https://boohoo.com/*",
+          "https://shein.co.uk/*",
+          "https://office.co.uk/*",
+          "https://uniqlo.com/*",
+          "https://matchesfashion.com/*"
+     ],
+
      "icons": {
           "16": "icons/16.png",
           "48": "icons/48.png",
@@ -38,8 +64,7 @@
           "client_id": "239651112786-2hfq7alul07n77o2e37kiet05pl7g0ir.apps.googleusercontent.com",
           "scopes": ["openid", "email", "profile"]
      },
-
-     "key": "MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAklpZsxNvfLrDAya/Kdu2b2yEqHUmfY6h5Y8rmNzPfMXz5c39LA3AfW5toYEUMEBExhSKXKwk9KltAkXb3xrpEg8SmMmktfaFQIpc1tP2n0Jw7WNrtnQ/4uIiZ7yfGu8qNaNhHP41lYGNxulxycHdk5CQWTpSMfr7Iep8/aMXgZZHJzn7HbRlIcnwrn8KrNMNU5j26SgvqxaRQwPoqG/EJAm/KeqMwzEiE5PDXzwj8UM57gwRMUOfXICOWmRkcyVuWRkOCv+FwDAynx/DJ2vCOEP9d8h+BoBJpkOp2wA9NMIae6OHDqCAP/jPJp4U2cwXCk6a1PDSgupjwBOY+J8haQIDAQAB",
+     "key": "MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAuKkDE3ovLq79PJFGnsLOl2MS8+8rIcMAkaNu3POLRBsTc4nrkgeM/qkK4fSE+QtYC3zWRZbjtJX6/9x3hFOGp1iYwEiJEzLrL290kqpQuky4oJgwh9lovpSmK4ADO3cBgAHwmadSqmM+yfC9n/7143yUX15Rh6ase7Iuoi5vGO7DTM6i1Uaux9IVTpln8jBHDirhU4AxKXhU3AKX8R3qlEyRBf8aFkoabgX1vYTQh1b8s1cn7DcLfTN9YauJcaBtqcI2dTKJ4oHOCSQG9oSMHW5dISIsmrFgtvnSNsblsNE4T7mMVPHVCPuQEJGCtYKH8HlhdBPJvUcQcBQYSPdvTQIDAQAB",
 
      "web_accessible_resources": ["css/content.css", "font/nunito.ttf"]
 }

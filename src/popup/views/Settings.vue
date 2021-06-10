@@ -47,7 +47,7 @@
                <div class="columns is-mobile row">
                     <div class="column  is-8">
                          <b-field type="is-light">
-                              <b-input placeholder="New basket" class="basketinput capitalize" v-model="newBasketName"></b-input>
+                              <b-input placeholder="New basket" class="basketinput capitalizeFirst" v-model="newBasketName"></b-input>
                          </b-field>
                     </div>
                     <div class="column is-4" style="padding-left:10px !important;">
@@ -59,7 +59,7 @@
                     <div class="column  is-8">
                          <div class="basketitem">
                               <div class="columns is-mobile ">
-                                   <div class="column is-9 basketname capitalize">
+                                   <div class="column is-9 basketname capitalizeFirst">
                                         general
                                    </div>
                                    <div class="column is-3 has-text-right  count" v-if="baskets && baskets.general !== undefined">
@@ -136,6 +136,7 @@
 
 <script>
      import apis from "../../apis/apis.js";
+     import mixpanel from "../../mixpanel";
      export default {
           data() {
                return {
@@ -162,6 +163,8 @@
                          this.showWidgetCheckbox = false;
                     }
                });
+
+               mixpanel.settingsVisit();
           },
 
           methods: {
@@ -176,7 +179,7 @@
                                    { trolliItems: [], userToken: false, userName: false, userPicture: false, userEmail: false },
                                    () => {
                                         this.$store.state.token = "false";
-
+                                        mixpanel.logout();
                                         this.$router.push("/login");
                                    }
                               );
@@ -190,6 +193,12 @@
                          },
                          () => {}
                     );
+
+
+
+                    
+
+                    mixpanel.widgetToggle(this.showWidgetCheckbox ? "Website" : "Extension");
                },
                async fetchBaskets() {
                     try {
@@ -215,7 +224,7 @@
                },
 
                addBasket() {
-                    let basketname = this.newBasketName.toLowerCase();
+                    let basketname = this.newBasketName;
 
                     if (basketname.length > 0 && this.baskets[basketname] == undefined) {
                          this.baskets[basketname] = 0;
@@ -226,6 +235,8 @@
                               },
                               () => {}
                          );
+
+                         mixpanel.newBaset(basketname);
                          this.newBasketName = "";
                     }
                },
@@ -269,14 +280,15 @@
 
                async deleteBasket(item) {
                     if (this.baskets[item] && this.baskets[item] > 0 && item !== "general") {
-                         //delete from server
                          try {
                               let result = await apis.deleteCategory(item);
-                              console.log(result);
+
+                              mixpanel.deleteBasket(item, this.baskets[item]);
                          } catch (e) {}
                     }
 
                     //delete from local
+
                     delete this.baskets[item];
                     this.updateBasketsArray();
                     chrome.storage.sync.set(

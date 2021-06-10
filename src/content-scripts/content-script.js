@@ -1,4 +1,5 @@
 import apis from "../apis/apis";
+import mixpanel from "../mixpanel";
 
 const DOMAINS = [
      "amazon.co",
@@ -16,14 +17,13 @@ const DOMAINS = [
      "selfridges.com",
      "next.co.uk",
      "endclothing.com",
-
-     "zarahome.com",
      "urbanoutfitters.com",
      "sportsdirect.com",
      "boohoo.com",
      "shein.co.uk",
      "office.co.uk",
      "uniqlo.com/uk",
+     "matchesfashion.com",
 ];
 let scrapedProduct;
 /*================================ Add button to page ==============================*/
@@ -176,9 +176,8 @@ chrome.runtime.onMessage.addListener(function(request, sender, sendResponse) {
                // console.log("removed");
           }
           scrapedProduct = undefined;
-          setTimeout(() => {
-               start();
-          }, 3000);
+
+          start();
      }
 });
 
@@ -190,12 +189,12 @@ chrome.runtime.onMessage.addListener(async function(request, sender, sendRespons
      }
 });
 
-async function start() {
+function start() {
      scrapedProduct = undefined;
      let location = window.location.href;
      for (let i = 0; i < DOMAINS.length; i++) {
           if (location.indexOf(DOMAINS[i]) != -1) {
-               scrapedProduct = await getScrapeData();
+               scrapedProduct = getScrapeData();
 
                if (scrapedProduct) {
                     chrome.runtime.sendMessage({ message: "pageHasItem", data: scrapedProduct });
@@ -211,7 +210,7 @@ async function start() {
      }
 }
 
-async function getScrapeData() {
+function getScrapeData() {
      let location = window.location.href;
      let scrapedProduct = undefined;
 
@@ -244,9 +243,12 @@ async function getScrapeData() {
                scrapedProduct = scrapeNext();
           } else if (location.indexOf("endclothing.com") > -1) {
                scrapedProduct = scrapeEndclothing();
-          } else if (location.indexOf("zarahome.com") > -1) {
-               scrapedProduct = await scrapeZaraHome();
-          } else if (location.indexOf("urbanoutfitters.com") > -1) {
+          }
+
+          // else if (location.indexOf("zarahome.com") > -1) {
+          //      scrapedProduct = await scrapeZaraHome();
+          // }
+          else if (location.indexOf("urbanoutfitters.com") > -1) {
                scrapedProduct = scrapeUrbanoutfitters();
           } else if (location.indexOf("sportsdirect.com") > -1) {
                scrapedProduct = scrapeSportsDirect();
@@ -258,8 +260,9 @@ async function getScrapeData() {
                scrapedProduct = scrapeOffice();
           } else if (location.indexOf("uniqlo.com/uk") > -1) {
                scrapedProduct = scrapeUniqlo();
+          } else if (location.indexOf("matchesfashion.com") > -1) {
+               scrapedProduct = scrapeMatchesfashion();
           }
-
           if (scrapedProduct) {
                scrapedProduct.firstPrice = scrapedProduct.firstPrice.replace("GBP", "");
                scrapedProduct.firstPrice = scrapedProduct.firstPrice.replace("£", "");
@@ -301,7 +304,9 @@ async function saveItem(scrapedProduct, basket) {
           try {
                let response = await apis.addProduct2(requestBody);
 
-               fectchAndAddToBasket(requestBody);
+               fetchAndAddToBasket(requestBody);
+
+               chrome.runtime.sendMessage({ message: "trolliItemAdded", item: requestBody }, (e) => {});
           } catch (e) {
                console.log(e);
                return false;
@@ -311,7 +316,7 @@ async function saveItem(scrapedProduct, basket) {
      return true;
 }
 
-function fectchAndAddToBasket(item) {
+function fetchAndAddToBasket(item) {
      chrome.storage.sync.get(["trolliItems"], (result) => {
           let trolliItems = result.trolliItems;
           if (!trolliItems) {
@@ -331,37 +336,66 @@ function fectchAndAddToBasket(item) {
 
 /*================================ SCRAPE FUNCTIONS ==============================*/
 
-function scrapeAmazon() {
-     var dealDiv = document.getElementById("priceblock_dealprice_row");
-     var availabilityDiv = document.getElementById("availability_feature_div");
+// function scrapeAmazon() {
+//      var dealDiv = document.getElementById("priceblock_dealprice_row");
+//      var availabilityDiv = document.getElementById("availability_feature_div");
 
+//      var title = document.getElementById("productTitle").innerText;
+//      var imageUrl = document.querySelector("li.selected img").src;
+
+//      var price = "";
+//      //var discountPrice = '';
+
+//      if (dealDiv) {
+//           price = document.querySelector(".priceBlockStrikePriceString").textContent;
+//           // discountPrice = document.getElementById('priceblock_dealprice').innerText;
+//      } else if (availabilityDiv) {
+//           var priceBlockElem = document.querySelector("#priceblock_ourprice");
+
+//           if (priceBlockElem) {
+//                price = priceBlockElem.innerText;
+//                //  discountPrice= '-'
+//           } else {
+//                price = document.querySelector("#availability span") ? document.querySelector("#availability span").innerText : "";
+//                if (price == "Temporarily out of stock." || price == "Currently unavailable.") {
+//                     price = "Sold Out";
+//                     // discountPrice = '-'
+//                }
+//           }
+//      } else {
+//           price = document.getElementById("priceblock_ourprice").innerText;
+//           // discountPrice = document.getElementById('priceblock_ourprice').innerText;
+//      }
+
+//      var scrapedProduct = {
+//           title: title,
+//           imageUrl: imageUrl,
+//           availability: "IN_STOCK",
+//           referenceUrl: window.location.href,
+//           website: "Amazon",
+//           firstPrice: price,
+//      };
+
+//      console.log("DATA",scrapedProduct);
+
+//      return scrapedProduct;
+// }
+
+function scrapeAmazon() {
      var title = document.getElementById("productTitle").innerText;
      var imageUrl = document.querySelector("li.selected img").src;
+     var price1 = document.querySelector("#price_inside_buybox");
+     var price2 = document.querySelector("#priceblock_ourprice");
+     var price3 = document.querySelector("#priceblock_saleprice");
 
-     var price = "";
-     //var discountPrice = '';
-
-     if (dealDiv) {
-          price = document.querySelector(".priceBlockStrikePriceString").textContent;
-          // discountPrice = document.getElementById('priceblock_dealprice').innerText;
-     } else if (availabilityDiv) {
-          var priceBlockElem = document.querySelector("#priceblock_ourprice");
-
-          if (priceBlockElem) {
-               price = priceBlockElem.innerText;
-               //  discountPrice= '-'
-          } else {
-               price = document.querySelector("#availability span") ? document.querySelector("#availability span").innerText : "";
-               if (price == "Temporarily out of stock." || price == "Currently unavailable.") {
-                    price = "Sold Out";
-                    // discountPrice = '-'
-               }
-          }
-     } else {
-          price = document.getElementById("priceblock_ourprice").innerText;
-          // discountPrice = document.getElementById('priceblock_ourprice').innerText;
+     let price = "";
+     if (price1) {
+          price = price1.innerText;
+     } else if (price2) {
+          price = price2.innerText;
+     } else if (price3) {
+          price = price3.innerText;
      }
-
      var scrapedProduct = {
           title: title,
           imageUrl: imageUrl,
@@ -371,9 +405,10 @@ function scrapeAmazon() {
           firstPrice: price,
      };
 
+     console.log("DATA", scrapedProduct);
+
      return scrapedProduct;
 }
-
 function scrapeCurrys() {
      var title = document.querySelector(".page-title").innerText;
      var price = document.querySelector(".ProductPriceBlock__Price-eXasuq").innerText;
@@ -394,8 +429,14 @@ function scrapeCurrys() {
 function scrapeWayfair() {
      var title = document.querySelector("h1.pl-Heading").innerText;
      var price = document.querySelector(".StandardPriceBlock").innerText;
-     var imageUrl = document.querySelector(".pl-FluidImage-image").src;
-
+     var image1 = document.querySelector(".pl-FluidImage-image");
+     var image2 = document.querySelector(".ImageComponent-image");
+     var imageUrl;
+     if (image1) {
+          imageUrl = image1.src;
+     } else if (image2) {
+          imageUrl = image2.src;
+     }
      var scrapedProduct = {
           title: title,
           imageUrl: imageUrl,
@@ -404,6 +445,7 @@ function scrapeWayfair() {
           website: "Wayfair",
           firstPrice: price,
      };
+     console.log("data", scrapedProduct);
 
      return scrapedProduct;
 }
@@ -606,9 +648,9 @@ function scrapeNext() {
 }
 
 function scrapeEndclothing() {
-     var title = document.querySelector(".sc-1fqzeck-2.bPKvfm").innerText;
-     var price = document.querySelector(".sc-1fqzeck-6").innerText;
-     var imageUrl = document.querySelector(".sc-1vmi03k-0 img").src;
+     var title = document.querySelector("span[data-test='ProductDetails__Title']").innerText;
+     var price = document.querySelector("span[data-test='PDP__Details__FinalPrice']").innerText;
+     var imageUrl = document.querySelector("div[data-test='Gallery__Images'] img").src;
      var scrapedProduct = {
           title: title,
           imageUrl: imageUrl,
@@ -623,8 +665,9 @@ function scrapeEndclothing() {
 
 function scrapeUrbanoutfitters() {
      var title = document.querySelector(".c-pwa-product-meta-heading").innerText;
-     var ogPrice = document.querySelector(".c-pwa-product-price__original");
-     var ogPrice2 = document.querySelector(".c-pwa-product-price__current");
+     var originalPrice = document.querySelector(".c-pwa-product-price__original");
+     var currentPrice = document.querySelector(".c-pwa-product-price__current");
+
      var discountPrice = document.querySelector(".c-pwa-product-price__current--sale-temporary");
      var imageUrl = document.querySelector(".c-pwa-image-viewer__img img").src;
 
@@ -632,8 +675,9 @@ function scrapeUrbanoutfitters() {
 
      if (discountPrice) {
           price = discountPrice.innerText;
-     } else if (ogPrice) price = ogPrice.innerText;
-     else if (ogPrice2) price = ogPrice2.innerText;
+     } else if (currentPrice) price = currentPrice.innerText;
+     else if (originalPrice) price = originalPrice.innerText;
+
      var scrapedProduct = {
           title: title,
           imageUrl: imageUrl,
@@ -715,9 +759,23 @@ function scrapeShein() {
 
 function scrapeOffice() {
      var title = document.querySelector(".product__name").innerText;
-     var price = document.querySelector(".price__price").innerText;
-     var imageUrl = document.querySelector(".product-grid__img").src;
+     var nonSale = document.querySelector(".price__price");
+     var salePrice = document.querySelector(".product__saleprice--now");
+     var imageUrl = document.querySelector(".product-grid img").src;
+     console.log(document.querySelector(".product-grid"));
+     console.log(document.querySelector(".product-grid img"));
 
+     var Brand = document.querySelector(".product__brand");
+
+     if (Brand) {
+          title = Brand.innerText + " - " + title;
+     }
+     let price;
+     if (nonSale) {
+          price = nonSale.innerText;
+     } else if (salePrice) {
+          price = salePrice.innerText;
+     }
      var scrapedProduct = {
           title: title,
           imageUrl: imageUrl,
@@ -726,6 +784,8 @@ function scrapeOffice() {
           website: "Office",
           firstPrice: price,
      };
+
+     console.log(scrapedProduct);
      return scrapedProduct;
 }
 
@@ -745,23 +805,44 @@ function scrapeUniqlo() {
      return scrapedProduct;
 }
 
-async function scrapeZaraHome() {
-     await sleep(4000);
+function scrapeMatchesfashion() {
+     var designer = document.querySelector("span[data-testid='ProductMainDescription-designer-link']");
+     var title = document.querySelector("span[data-testid='ProductMainDescription-name']").innerText;
+     var price = document.querySelector("span[data-testid='ProductPrice-billing-price']").innerText;
+     var imageUrl = document.querySelector(".carousel__inner-slide img").src;
 
-     var title = document.querySelector(".header h2 span").innerText;
-
-     var price = document.querySelector(".price").innerText;
-
-     var imageUrl = document.querySelector(".detail-image").src;
+     if (designer) {
+          title = designer.innerText + " - " + title;
+     }
 
      var scrapedProduct = {
           title: title,
           imageUrl: imageUrl,
           availability: "IN_STOCK",
           referenceUrl: window.location.href,
-          website: "ZaraHome",
+          website: "Matchesfashion",
           firstPrice: price,
      };
-
      return scrapedProduct;
 }
+
+// async function scrapeZaraHome() {
+//      await sleep(4000);
+
+//      var title = document.querySelector(".header h2 span").innerText;
+
+//      var price = document.querySelector(".price").innerText;
+
+//      var imageUrl = document.querySelector(".detail-image").src;
+
+//      var scrapedProduct = {
+//           title: title,
+//           imageUrl: imageUrl,
+//           availability: "IN_STOCK",
+//           referenceUrl: window.location.href,
+//           website: "ZaraHome",
+//           firstPrice: price,
+//      };
+
+//      return scrapedProduct;
+// }

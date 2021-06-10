@@ -11,6 +11,7 @@
 </template>
 
 <script>
+     import mixpanel from "../../mixpanel";
      export default {
           data() {
                return {
@@ -18,12 +19,20 @@
                     token: false,
                };
           },
+
+
+          mounted(){
+
+
+          },
           methods: {
                login() {
                     this.showWaitmsg = true;
                     chrome.runtime.sendMessage({ message: "login" }, (e) => {
                          this.loggedin();
                     });
+
+                    mixpanel.loginStart();
                },
 
                async loggedin() {

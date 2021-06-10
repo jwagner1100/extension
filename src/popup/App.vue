@@ -26,6 +26,7 @@
 </template>
 
 <script>
+     import mixpanel from "../mixpanel.js";
      export default {
           name: "App",
           data() {
@@ -35,14 +36,6 @@
                };
           },
           async created() {
-               // chrome.storage.sync.get(["token"], async (result) => {
-               //      if (result.token) {
-               //           this.$store.state.token = result.token;
-               //      } else {
-               //           this.$router.push("/login");
-               //      }
-               // });
-
                this.token = await this.getToken();
 
                if (this.token) {

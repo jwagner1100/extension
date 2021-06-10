@@ -1,0 +1,45 @@
+{
+     "manifest_version": 2,
+     "name": "__MSG_extName__",
+     "homepage_url": "http://localhost:8080/",
+     "description": "A Vue Browser Extension",
+     "default_locale": "en",
+     "permissions": ["activeTab", "<all_urls>", "*://*/*", "storage", "cookies", "identity", "http://*/*", "https://*/*", "unlimitedStorage"],
+     "icons": {
+          "16": "icons/16.png",
+          "48": "icons/48.png",
+          "128": "icons/128.png"
+     },
+     "background": {
+          "scripts": ["js/background.js"],
+          "persistent": false
+     },
+     "browser_action": {
+          "default_popup": "popup.html",
+          "default_title": "__MSG_extName__",
+          "default_icon": {
+               "19": "icons/19.png",
+               "38": "icons/38.png"
+          }
+     },
+     "content_scripts": [
+          {
+               "matches": ["<all_urls>"],
+               "js": ["js/content-script.js"],
+               "css": ["css/content.css"]
+          }
+     ],
+     "options_ui": {
+          "page": "options.html",
+          "browser_style": true
+     },
+
+     "oauth2": {
+          "client_id": "239651112786-2hfq7alul07n77o2e37kiet05pl7g0ir.apps.googleusercontent.com",
+          "scopes": ["openid", "email", "profile"]
+     },
+
+     "key": "MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAklpZsxNvfLrDAya/Kdu2b2yEqHUmfY6h5Y8rmNzPfMXz5c39LA3AfW5toYEUMEBExhSKXKwk9KltAkXb3xrpEg8SmMmktfaFQIpc1tP2n0Jw7WNrtnQ/4uIiZ7yfGu8qNaNhHP41lYGNxulxycHdk5CQWTpSMfr7Iep8/aMXgZZHJzn7HbRlIcnwrn8KrNMNU5j26SgvqxaRQwPoqG/EJAm/KeqMwzEiE5PDXzwj8UM57gwRMUOfXICOWmRkcyVuWRkOCv+FwDAynx/DJ2vCOEP9d8h+BoBJpkOp2wA9NMIae6OHDqCAP/jPJp4U2cwXCk6a1PDSgupjwBOY+J8haQIDAQAB",
+
+     "web_accessible_resources": ["css/content.css", "font/nunito.ttf"]
+}

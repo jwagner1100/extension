@@ -1,4 +1,4 @@
-#trolliPlusButton {
+/* #trolliPlusButton {
      position: fixed;
      display: inline-block;
      vertical-align: middle;
@@ -15,9 +15,9 @@
      line-height: 0;
      border: none;
      outline: none;
-     z-index: 10000;
+     z-index: 100000000000;
      cursor: pointer;
-}
+} */
 @font-face {
      font-family: nunitosans;
 
@@ -35,7 +35,7 @@
      height: 113px !important;
      width: 400px !important;
      position: fixed !important;
-     z-index: 100000 !important;
+     z-index: 100000000000 !important;
      bottom: 10px !important;
      right: 8px !important;
      border: 1px solid lightgray !important;
@@ -114,6 +114,8 @@
      align-items: center !important;
 
      font-size: 16.5px !important;
+
+     text-transform: capitalize !important;
      /* text-transform: lowercase !important; */
      /* font-weight: 600; */
      /* background: red; */

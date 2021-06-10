@@ -120,6 +120,12 @@
                               <img v-else-if="pageItem.website == 'Shein'" class="Shein" src="@/assets/logos/shein.png" alt="" />
                               <img v-else-if="pageItem.website == 'Office'" class="Office" src="@/assets/logos/office.png" alt="" />
                               <img v-else-if="pageItem.website == 'Uniqlo'" class="Uniqlo" src="@/assets/logos/uniqlo.png" alt="" />
+                              <img
+                                   v-else-if="pageItem.website == 'Matchesfashion'"
+                                   class="Matchesfashion"
+                                   src="@/assets/logos/matchesfashion.png"
+                                   alt=""
+                              />
                          </div>
                     </div>
                     <div class="column is-9 " style="padding-left:10px !important;">
@@ -161,6 +167,7 @@
 <script>
      import apis from "../../apis/apis.js";
      import trolliItem from "../components/trolliItem";
+     import mixpanel from "../../mixpanel";
      export default {
           data() {
                return {
@@ -192,26 +199,30 @@
           async created() {
                //fetch item from local
 
-               chrome.storage.sync.get(["trolliItems", "baskets", "showWidget"], async (result) => {
-                    this.trolliItems = result.trolliItems;
-                    this.baskets = result.baskets;
-                    this.basketKeys = Object.keys(this.baskets);
+               try {
+                    chrome.storage.sync.get(["trolliItems", "baskets", "showWidget"], async (result) => {
+                         this.trolliItems = result.trolliItems;
+                         this.baskets = result.baskets;
 
-                    if (result.showWidget === false) {
-                         this.trolliBottomWidget = true;
-                    }
+                         this.basketKeys = this.baskets ? Object.keys(this.baskets) : [];
 
-                    if (this.basketKeys && this.basketKeys.length === 0) {
-                         this.basketKeys.push("general");
-                    }
+                         if (result.showWidget === false) {
+                              this.trolliBottomWidget = true;
+                         }
 
-                    this.trolliItemsToShow = this.trolliItems;
+                         if (this.basketKeys && this.basketKeys.length === 0) {
+                              this.basketKeys.push("general");
+                         }
 
-                    //fetch item from server
-                    await this.fetchTrolliItems();
-                    await this.fetchBaskets();
-               });
+                         this.trolliItemsToShow = this.trolliItems;
 
+                         //fetch item from server
+                         await this.fetchTrolliItems();
+                         await this.fetchBaskets();
+                    });
+               } catch (e) {
+                    console.log(e);
+               }
                //check if item page
 
                chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
@@ -226,6 +237,8 @@
                     var activeTab = tabs[0];
                     chrome.tabs.sendMessage(activeTab.id, { message: "checkItemPage" });
                });
+
+               mixpanel.homeVisit();
           },
 
           watch: {
@@ -265,7 +278,7 @@
                     try {
                          let result = await apis.getBaskets();
                          this.baskets = { ...this.baskets, ...result.data };
-                         this.basketKeys = Object.keys(this.baskets);
+                         this.basketKeys = this.baskets ? Object.keys(this.baskets) : [];
                          if (this.basketKeys.length === 0) {
                               this.basketKeys.push("general");
                          }
@@ -332,7 +345,11 @@
                               var activeTab = tabs[0];
                               chrome.tabs.sendMessage(activeTab.id, { message: "currentPageItemAdded", data: this.selectedBasket });
                          });
-                    } catch (e) {}
+
+                         mixpanel.addItem(requestBody, "Extension Widget");
+                    } catch (e) {
+                         console.log("error", e);
+                    }
                },
 
                async checkItemInBakset() {
@@ -561,6 +578,10 @@
                          }
                          .ZaraHome {
                               height: 8px;
+                         }
+
+                         .Matchesfashion {
+                              height: 13px;
                          }
                     }
                }
