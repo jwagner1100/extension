@@ -1,6 +1,7 @@
 import apis from "../apis/apis";
 import mixpanel from "../mixpanel";
 
+let scrapeCount = 0;
 const DOMAINS = [
      "amazon.co",
      "currys.co",
@@ -26,6 +27,10 @@ const DOMAINS = [
      "matchesfashion.com",
 ];
 let scrapedProduct;
+
+// let scrapedProductBackup;
+
+// console.log("hi from trolli");
 /*================================ Add button to page ==============================*/
 
 function sleep(ms) {
@@ -64,7 +69,7 @@ async function insertWidget() {
                // }
                //check if item already in trolli
                let response = await apis.checkItem2(scrapedProduct.referenceUrl);
-               console.log("trolli", response);
+               // console.log("trolli", response);
                if (response.data.check == true) {
                     //item in trolli
                     addedToBasket = true;
@@ -165,21 +170,50 @@ async function insertWidget() {
      });
 }
 
+/*================================ Start trolli events ==============================*/
+
 window.addEventListener("load", () => {
+     console.log("on load start");
      start();
 });
 
-chrome.runtime.onMessage.addListener(function(request, sender, sendResponse) {
-     if (request.message === "restart") {
-          if (document.getElementById("yourtolli-widgetcontainer")) {
-               document.getElementById("yourtolli-widgetcontainer").remove();
-               // console.log("removed");
-          }
-          scrapedProduct = undefined;
+// window.addEventListener("popstate", function(event) {
+//      console.log("link popstate");
+//      start();
+// });
 
-          start();
-     }
-});
+var oldHref = document.location.href;
+
+window.onload = function() {
+     var bodyList = document.querySelector("body"),
+          observer = new MutationObserver(function(mutations) {
+               mutations.forEach(function(mutation) {
+                    if (oldHref != document.location.href) {
+                         oldHref = document.location.href;
+                         console.log("link  change");
+
+                         setTimeout(() => {
+                              start();
+                         }, 2000);
+                    }
+               });
+          });
+
+     var config = {
+          childList: true,
+          subtree: true,
+     };
+
+     observer.observe(bodyList, config);
+};
+
+// chrome.runtime.onMessage.addListener(function(request, sender, sendResponse) {
+//      if (request.message === "restart") {
+//           console.log("restarting scraping");
+//           scrapedProductBackup = scrapedProduct;
+//           start();
+//      }
+// });
 
 /*================================ add product ==============================*/
 
@@ -197,11 +231,32 @@ function start() {
                scrapedProduct = getScrapeData();
 
                if (scrapedProduct) {
+                    //if both are same dont replace
+                    // if (scrapedProductBackup) {
+                    //      // console.log(scrapedProductBackup, scrapedProduct);
+                    //      if (scrapedProductBackup.referenceUrl == scrapedProduct.referenceUrl) {
+                    //           break;
+                    //      }
+                    // }
+
                     chrome.runtime.sendMessage({ message: "pageHasItem", data: scrapedProduct });
 
                     chrome.storage.sync.get(["trolliItems", "baskets", "showWidget", "userToken"], (result) => {
                          if (result.showWidget !== false && result.userToken) {
+                              if (document.getElementById("yourtolli-widgetcontainer")) {
+                                   document.getElementById("yourtolli-widgetcontainer").remove();
+                              }
+
                               insertWidget();
+
+                              // if (!scrapedProduct.imageUrl && scrapeCount == 0) {
+                              //      setTimeout(() => {
+                              //           console.log("no image restart");
+                              //           start();
+                              //      }, 2000);
+
+                              //      scrapeCount++;
+                              // }
                          }
                     });
                }
@@ -213,6 +268,8 @@ function start() {
 function getScrapeData() {
      let location = window.location.href;
      let scrapedProduct = undefined;
+
+     console.log("start crawling");
 
      try {
           if (location.indexOf("amazon.co") > -1) {
@@ -263,6 +320,9 @@ function getScrapeData() {
           } else if (location.indexOf("matchesfashion.com") > -1) {
                scrapedProduct = scrapeMatchesfashion();
           }
+
+          console.log(scrapedProduct);
+
           if (scrapedProduct) {
                scrapedProduct.firstPrice = scrapedProduct.firstPrice.replace("GBP", "");
                scrapedProduct.firstPrice = scrapedProduct.firstPrice.replace("£", "");
@@ -382,448 +442,527 @@ function fetchAndAddToBasket(item) {
 // }
 
 function scrapeAmazon() {
-     var title = document.getElementById("productTitle").innerText;
-     var imageUrl = document.querySelector("li.selected img").src;
-     var price1 = document.querySelector("#price_inside_buybox");
-     var price2 = document.querySelector("#priceblock_ourprice");
-     var price3 = document.querySelector("#priceblock_saleprice");
+     try {
+          var title = document.getElementById("productTitle").innerText;
+          var imageUrl = document.querySelector("li.selected img").src;
+          var price1 = document.querySelector("#price_inside_buybox");
+          var price2 = document.querySelector("#priceblock_ourprice");
+          var price3 = document.querySelector("#priceblock_saleprice");
 
-     let price = "";
-     if (price1) {
-          price = price1.innerText;
-     } else if (price2) {
-          price = price2.innerText;
-     } else if (price3) {
-          price = price3.innerText;
+          let price = "";
+          if (price1) {
+               price = price1.innerText;
+          } else if (price2) {
+               price = price2.innerText;
+          } else if (price3) {
+               price = price3.innerText;
+          }
+          var scrapedProduct = {
+               title: title,
+               imageUrl: imageUrl,
+               availability: "IN_STOCK",
+               referenceUrl: window.location.href,
+               website: "Amazon",
+               firstPrice: price,
+          };
+
+          return scrapedProduct;
+     } catch (e) {
+          console.log(e);
      }
-     var scrapedProduct = {
-          title: title,
-          imageUrl: imageUrl,
-          availability: "IN_STOCK",
-          referenceUrl: window.location.href,
-          website: "Amazon",
-          firstPrice: price,
-     };
-
-     console.log("DATA", scrapedProduct);
-
-     return scrapedProduct;
 }
 function scrapeCurrys() {
-     var title = document.querySelector(".page-title").innerText;
-     var price = document.querySelector(".ProductPriceBlock__Price-eXasuq").innerText;
-     var imageUrl = document.querySelector(".iiz__img").src;
+     try {
+          var title = document.querySelector(".page-title").innerText;
+          var price = document.querySelector(".ProductPriceBlock__Price-eXasuq").innerText;
+          var imageUrl = document.querySelector(".iiz__img").src;
 
-     var scrapedProduct = {
-          title: title,
-          imageUrl: imageUrl,
-          availability: "IN_STOCK",
-          referenceUrl: window.location.href,
-          website: "Currys",
-          firstPrice: price,
-     };
+          var scrapedProduct = {
+               title: title,
+               imageUrl: imageUrl,
+               availability: "IN_STOCK",
+               referenceUrl: window.location.href,
+               website: "Currys",
+               firstPrice: price,
+          };
 
-     return scrapedProduct;
+          return scrapedProduct;
+     } catch (e) {
+          console.log(e);
+     }
 }
 
 function scrapeWayfair() {
-     var title = document.querySelector("h1.pl-Heading").innerText;
-     var price = document.querySelector(".StandardPriceBlock").innerText;
-     var image1 = document.querySelector(".pl-FluidImage-image");
-     var image2 = document.querySelector(".ImageComponent-image");
-     var imageUrl;
-     if (image1) {
-          imageUrl = image1.src;
-     } else if (image2) {
-          imageUrl = image2.src;
-     }
-     var scrapedProduct = {
-          title: title,
-          imageUrl: imageUrl,
-          availability: "IN_STOCK",
-          referenceUrl: window.location.href,
-          website: "Wayfair",
-          firstPrice: price,
-     };
-     console.log("data", scrapedProduct);
+     try {
+          var title = document.querySelector("h1.pl-Heading").innerText;
+          var price = document.querySelector(".StandardPriceBlock").innerText;
+          var image1 = document.querySelector(".pl-FluidImage-image");
+          var image2 = document.querySelector(".ImageComponent-image");
+          var imageUrl;
+          if (image1) {
+               imageUrl = image1.src;
+          } else if (image2) {
+               imageUrl = image2.src;
+          }
+          var scrapedProduct = {
+               title: title,
+               imageUrl: imageUrl,
+               availability: "IN_STOCK",
+               referenceUrl: window.location.href,
+               website: "Wayfair",
+               firstPrice: price,
+          };
 
-     return scrapedProduct;
+          return scrapedProduct;
+     } catch (e) {
+          console.log(e);
+     }
 }
 
 function scrapeZara() {
-     var title = document.querySelector("h1.product-detail-info__name").innerText;
-     var price = document.querySelector(".price__amount").innerText;
-     var imageUrl = document.querySelector(".media-image__image.media__wrapper--media").src;
+     try {
+          var title = document.querySelector("h1.product-detail-info__name").innerText;
+          var price = document.querySelector(".price__amount").innerText;
+          var imageUrl = document.querySelector(".media-image__image.media__wrapper--media").src;
 
-     var scrapedProduct = {
-          title: title,
-          imageUrl: imageUrl,
-          availability: "IN_STOCK",
-          referenceUrl: window.location.href,
-          website: "Zara",
-          firstPrice: price,
-     };
+          var scrapedProduct = {
+               title: title,
+               imageUrl: imageUrl,
+               availability: "IN_STOCK",
+               referenceUrl: window.location.href,
+               website: "Zara",
+               firstPrice: price,
+          };
 
-     return scrapedProduct;
+          return scrapedProduct;
+     } catch (e) {
+          console.log(e);
+     }
 }
 
 function scrapeAsos() {
-     var title = document.querySelector(".product-hero h1").innerText;
-     var price = document.querySelector('[data-id="current-price"]').textContent;
-     var imageUrl = document.querySelectorAll("div.image-container.zoomable")[1].querySelector("img").src;
+     try {
+          var title = document.querySelector(".product-hero h1").innerText;
+          var price = document.querySelector('[data-id="current-price"]').textContent;
+          var imageUrl = document.querySelectorAll("div.image-container.zoomable")[1].querySelector("img").src;
 
-     var scrapedProduct = {
-          title: title,
-          imageUrl: imageUrl,
-          availability: "IN_STOCK",
-          referenceUrl: window.location.href,
-          website: "Asos",
-          firstPrice: price,
-     };
+          var scrapedProduct = {
+               title: title,
+               imageUrl: imageUrl,
+               availability: "IN_STOCK",
+               referenceUrl: window.location.href,
+               website: "Asos",
+               firstPrice: price,
+          };
 
-     return scrapedProduct;
+          return scrapedProduct;
+     } catch (e) {
+          console.log(e);
+     }
 }
 
 function scrapeIKEA() {
-     // var title = document.querySelector('.to-print h1').innerText
-     // var price = document.querySelector('span[class^=ProductPriceBlock__Price-]').innerText
-     // var imageUrl = document.querySelector('.product-image').src;
+     try {
+          // var title = document.querySelector('.to-print h1').innerText
+          // var price = document.querySelector('span[class^=ProductPriceBlock__Price-]').innerText
+          // var imageUrl = document.querySelector('.product-image').src;
 
-     var title = document.querySelector("h1.range-revamp-header-section").innerText;
-     var price = document.querySelector(".range-revamp-pip-price-package__main-price").innerText;
-     var imageUrl = document.querySelector("div.range-revamp-media-grid__media-container img").src;
+          var title = document.querySelector("h1.range-revamp-header-section").innerText;
+          var price = document.querySelector(".range-revamp-pip-price-package__main-price").innerText;
+          var imageUrl = document.querySelector("div.range-revamp-media-grid__media-container img").src;
 
-     var scrapedProduct = {
-          title: title,
-          imageUrl: imageUrl,
-          availability: "IN_STOCK",
-          referenceUrl: window.location.href,
-          website: "Ikea",
-          firstPrice: price,
-     };
+          var scrapedProduct = {
+               title: title,
+               imageUrl: imageUrl,
+               availability: "IN_STOCK",
+               referenceUrl: window.location.href,
+               website: "Ikea",
+               firstPrice: price,
+          };
 
-     return scrapedProduct;
+          return scrapedProduct;
+     } catch (e) {
+          console.log(e);
+     }
 }
 
 function scrapeNETAPORTER() {
-     var desiner = document.querySelector(".ProductInformation83__designer").innerText;
-     var title = document.querySelector("p.ProductInformation83__name").innerText;
-     var priceDOM = document.querySelector("span.PriceWithSchema9__value--details");
-     var salePriceDOM = document.querySelector("div.PriceWithSchema9__value--sale");
+     try {
+          var desiner = document.querySelector(".ProductInformation83__designer").innerText;
+          var title = document.querySelector("p.ProductInformation83__name").innerText;
+          var priceDOM = document.querySelector("span.PriceWithSchema9__value--details");
+          var salePriceDOM = document.querySelector("div.PriceWithSchema9__value--sale");
 
-     // console.log(priceDOM, priceDOM.innerText);
+          // console.log(priceDOM, priceDOM.innerText);
 
-     var price = "";
+          var price = "";
 
-     if (!priceDOM) {
-          price = salePriceDOM.innerText;
-     } else price = priceDOM.innerText;
+          if (!priceDOM) {
+               price = salePriceDOM.innerText;
+          } else price = priceDOM.innerText;
 
-     var imageUrl = document.querySelector("picture img").src;
+          var imageUrl = document.querySelector("picture img").src;
 
-     var scrapedProduct = {
-          title: desiner + " " + title,
-          imageUrl: imageUrl,
-          availability: "IN_STOCK",
-          referenceUrl: window.location.href,
-          website: "Porter",
-          firstPrice: price,
-     };
+          var scrapedProduct = {
+               title: desiner + " " + title,
+               imageUrl: imageUrl,
+               availability: "IN_STOCK",
+               referenceUrl: window.location.href,
+               website: "Porter",
+               firstPrice: price,
+          };
 
-     return scrapedProduct;
+          return scrapedProduct;
+     } catch (e) {
+          console.log(e);
+     }
 }
 
 function scrapeJohnLewis() {
-     var title = document.querySelector(".product-header__title").innerText;
-     var price = document.querySelector(".price.price--large.price--large--anyday").innerText;
-     // var salePriceDOM = document.querySelector("div.PriceWithSchema9__value--sale");
-     var imageUrl = document.querySelector(".swiper-slide img").src;
+     try {
+          var title = document.querySelector(".product-header__title").innerText;
+          var price = document.querySelector(".price.price--large.price--large--anyday").innerText;
+          // var salePriceDOM = document.querySelector("div.PriceWithSchema9__value--sale");
+          var imageUrl = document.querySelector(".swiper-slide img").src;
 
-     var scrapedProduct = {
-          title: title,
-          imageUrl: imageUrl,
-          availability: "IN_STOCK",
-          referenceUrl: window.location.href,
-          website: "JohnLewis",
-          firstPrice: price,
-     };
+          var scrapedProduct = {
+               title: title,
+               imageUrl: imageUrl,
+               availability: "IN_STOCK",
+               referenceUrl: window.location.href,
+               website: "JohnLewis",
+               firstPrice: price,
+          };
 
-     return scrapedProduct;
+          return scrapedProduct;
+     } catch (e) {
+          console.log(e);
+     }
 }
 
 function scrapeMade() {
-     var title = document.querySelector(".styles__ProductName-sc-1f0ybwc-7").innerText;
-     var price = document.querySelector(".ProductPrice__Price-z224l3-1").innerText;
-     // var salePriceDOM = document.querySelector("div.PriceWithSchema9__value--sale");
+     try {
+          var title = document.querySelector(".styles__ProductName-sc-1f0ybwc-7").innerText;
+          var price = document.querySelector(".ProductPrice__Price-z224l3-1").innerText;
+          // var salePriceDOM = document.querySelector("div.PriceWithSchema9__value--sale");
 
-     var imageUrl = document.querySelector(".ResponsiveImage__Image-sc-1oncuu5-0").src;
+          var imageUrl = document.querySelector(".ResponsiveImage__Image-sc-1oncuu5-0").src;
 
-     var scrapedProduct = {
-          title: title,
-          imageUrl: imageUrl,
-          availability: "IN_STOCK",
-          referenceUrl: window.location.href,
-          website: "Made",
-          firstPrice: price,
-     };
+          var scrapedProduct = {
+               title: title,
+               imageUrl: imageUrl,
+               availability: "IN_STOCK",
+               referenceUrl: window.location.href,
+               website: "Made",
+               firstPrice: price,
+          };
 
-     return scrapedProduct;
+          return scrapedProduct;
+     } catch (e) {
+          console.log(e);
+     }
 }
 
 function scrapeHabitat() {
-     var title = document.querySelector(".Namestyles__Main-sc-269llv-1 span").innerText;
+     try {
+          var title = document.querySelector(".Namestyles__Main-sc-269llv-1 span").innerText;
 
-     var price = document.querySelector(".Pricestyles__Li-sc-1oev7i-0  h2").innerText;
-     // var salePriceDOM = document.querySelector("div.PriceWithSchema9__value--sale");
+          var price = document.querySelector(".Pricestyles__Li-sc-1oev7i-0  h2").innerText;
+          // var salePriceDOM = document.querySelector("div.PriceWithSchema9__value--sale");
 
-     var imageUrl = document.querySelector(".MediaGallerystyles__ImageWrapper-sc-1jwueuh-2 img").src;
+          var imageUrl = document.querySelector(".MediaGallerystyles__ImageWrapper-sc-1jwueuh-2 img").src;
 
-     var scrapedProduct = {
-          title: title,
-          imageUrl: imageUrl,
-          availability: "IN_STOCK",
-          referenceUrl: window.location.href,
-          website: "Habitat",
-          firstPrice: price,
-     };
+          var scrapedProduct = {
+               title: title,
+               imageUrl: imageUrl,
+               availability: "IN_STOCK",
+               referenceUrl: window.location.href,
+               website: "Habitat",
+               firstPrice: price,
+          };
 
-     return scrapedProduct;
+          return scrapedProduct;
+     } catch (e) {
+          console.log(e);
+     }
 }
 
 function scrapeHandM() {
-     var title = document.querySelector(".product-item-headline").innerText;
+     try {
+          var title = document.querySelector(".product-item-headline").innerText;
 
-     var price = document.querySelector(".ProductPrice-module--productItemPrice__2rpyB").innerText;
+          var price = document.querySelector(".ProductPrice-module--productItemPrice__2rpyB").innerText;
 
-     var imageUrl = document.querySelector(".product-detail-main-image-container img").src;
+          var imageUrl = document.querySelector(".product-detail-main-image-container img").src;
 
-     var scrapedProduct = {
-          title: title,
-          imageUrl: imageUrl,
-          availability: "IN_STOCK",
-          referenceUrl: window.location.href,
-          website: "HandM",
-          firstPrice: price,
-     };
+          var scrapedProduct = {
+               title: title,
+               imageUrl: imageUrl,
+               availability: "IN_STOCK",
+               referenceUrl: window.location.href,
+               website: "HandM",
+               firstPrice: price,
+          };
 
-     return scrapedProduct;
+          return scrapedProduct;
+     } catch (e) {
+          console.log(e);
+     }
 }
 
 function scrapeSelfridges() {
-     var title = document.querySelector(".a-txt-product-description").innerText;
+     try {
+          var title = document.querySelector(".a-txt-product-description").innerText;
 
-     var price = document.querySelector(".o-price").innerText;
+          var price = document.querySelector(".o-price").innerText;
 
-     var imageUrl = document.querySelector(".c-image-gallery__img img").src;
+          var imageUrl = document.querySelector(".c-image-gallery__img img").src;
 
-     var scrapedProduct = {
-          title: title,
-          imageUrl: imageUrl,
-          availability: "IN_STOCK",
-          referenceUrl: window.location.href,
-          website: "Selfridges",
-          firstPrice: price,
-     };
+          var scrapedProduct = {
+               title: title,
+               imageUrl: imageUrl,
+               availability: "IN_STOCK",
+               referenceUrl: window.location.href,
+               website: "Selfridges",
+               firstPrice: price,
+          };
 
-     return scrapedProduct;
+          return scrapedProduct;
+     } catch (e) {
+          console.log(e);
+     }
 }
 
 function scrapeNext() {
-     var title = document.querySelector(".Title h1").innerText;
+     try {
+          var title = document.querySelector(".Title h1").innerText;
 
-     var price = document.querySelector(".nowPrice").innerText;
+          var price = document.querySelector(".nowPrice").innerText;
 
-     var imageUrl = document.querySelector(".ProductImagery img").src;
+          var imageUrl = document.querySelector(".ProductImagery img").src;
 
-     var scrapedProduct = {
-          title: title,
-          imageUrl: imageUrl,
-          availability: "IN_STOCK",
-          referenceUrl: window.location.href,
-          website: "Next",
-          firstPrice: price,
-     };
+          var scrapedProduct = {
+               title: title,
+               imageUrl: imageUrl,
+               availability: "IN_STOCK",
+               referenceUrl: window.location.href,
+               website: "Next",
+               firstPrice: price,
+          };
 
-     return scrapedProduct;
+          return scrapedProduct;
+     } catch (e) {
+          console.log(e);
+     }
 }
 
 function scrapeEndclothing() {
-     var title = document.querySelector("span[data-test='ProductDetails__Title']").innerText;
-     var price = document.querySelector("span[data-test='PDP__Details__FinalPrice']").innerText;
-     var imageUrl = document.querySelector("div[data-test='Gallery__Images'] img").src;
-     var scrapedProduct = {
-          title: title,
-          imageUrl: imageUrl,
-          availability: "IN_STOCK",
-          referenceUrl: window.location.href,
-          website: "Endclothing",
-          firstPrice: price,
-     };
+     try {
+          var title = document.querySelector("span[data-test='ProductDetails__Title']").innerText;
+          var price = document.querySelector("span[data-test='PDP__Details__FinalPrice']").innerText;
+          var imageUrl = document.querySelector("div[data-test='Gallery__Images'] img").src;
+          var scrapedProduct = {
+               title: title,
+               imageUrl: imageUrl,
+               availability: "IN_STOCK",
+               referenceUrl: window.location.href,
+               website: "Endclothing",
+               firstPrice: price,
+          };
 
-     return scrapedProduct;
+          return scrapedProduct;
+     } catch (e) {
+          console.log(e);
+     }
 }
 
 function scrapeUrbanoutfitters() {
-     var title = document.querySelector(".c-pwa-product-meta-heading").innerText;
-     var originalPrice = document.querySelector(".c-pwa-product-price__original");
-     var currentPrice = document.querySelector(".c-pwa-product-price__current");
+     try {
+          var title = document.querySelector(".c-pwa-product-meta-heading").innerText;
+          var originalPrice = document.querySelector(".c-pwa-product-price__original");
+          var currentPrice = document.querySelector(".c-pwa-product-price__current");
 
-     var discountPrice = document.querySelector(".c-pwa-product-price__current--sale-temporary");
-     var imageUrl = document.querySelector(".c-pwa-image-viewer__img img").src;
+          var discountPrice = document.querySelector(".c-pwa-product-price__current--sale-temporary");
+          var imageUrl = document.querySelector(".c-pwa-image-viewer__img img").src;
 
-     var price = "";
+          var price = "";
 
-     if (discountPrice) {
-          price = discountPrice.innerText;
-     } else if (currentPrice) price = currentPrice.innerText;
-     else if (originalPrice) price = originalPrice.innerText;
+          if (discountPrice) {
+               price = discountPrice.innerText;
+          } else if (currentPrice) price = currentPrice.innerText;
+          else if (originalPrice) price = originalPrice.innerText;
 
-     var scrapedProduct = {
-          title: title,
-          imageUrl: imageUrl,
-          availability: "IN_STOCK",
-          referenceUrl: window.location.href,
-          website: "Urbanoutfitters",
-          firstPrice: price,
-     };
+          var scrapedProduct = {
+               title: title,
+               imageUrl: imageUrl,
+               availability: "IN_STOCK",
+               referenceUrl: window.location.href,
+               website: "Urbanoutfitters",
+               firstPrice: price,
+          };
 
-     return scrapedProduct;
+          return scrapedProduct;
+     } catch (e) {
+          console.log(e);
+     }
 }
 
 function scrapeSportsDirect() {
-     var title = document.querySelector("#lblProductName").innerText;
-     var discountPrice = document.querySelector("#lblSellingPrice");
-     var ogPrice = document.querySelector("#lblTicketPrice");
-     var imageUrl = document.querySelector("#imgProduct").src;
+     try {
+          var title = document.querySelector("#lblProductName").innerText;
+          var discountPrice = document.querySelector("#lblSellingPrice");
+          var ogPrice = document.querySelector("#lblTicketPrice");
+          var imageUrl = document.querySelector("#imgProduct").src;
 
-     var price = "";
+          var price = "";
 
-     if (discountPrice) {
-          price = discountPrice.innerText;
-     } else price = ogPrice.innerText;
+          if (discountPrice) {
+               price = discountPrice.innerText;
+          } else price = ogPrice.innerText;
 
-     var scrapedProduct = {
-          title: title,
-          imageUrl: imageUrl,
-          availability: "IN_STOCK",
-          referenceUrl: window.location.href,
-          website: "Sportsdirect",
-          firstPrice: price,
-     };
+          var scrapedProduct = {
+               title: title,
+               imageUrl: imageUrl,
+               availability: "IN_STOCK",
+               referenceUrl: window.location.href,
+               website: "Sportsdirect",
+               firstPrice: price,
+          };
 
-     return scrapedProduct;
+          return scrapedProduct;
+     } catch (e) {
+          console.log(e);
+     }
 }
 
 function scrapeBoohoo() {
-     var title = document.querySelector(".product-name").innerText;
-     var discountPrice = document.querySelector(".price-sales");
-     var ogPrice = document.querySelector(".price-standard");
-     var imageUrl = document.querySelector(".product-thumbnails-list img").src;
+     try {
+          var title = document.querySelector(".product-name").innerText;
+          var discountPrice = document.querySelector(".price-sales");
+          var ogPrice = document.querySelector(".price-standard");
+          var imageUrl = document.querySelector(".product-thumbnails-list img").src;
 
-     var price = "";
+          var price = "";
 
-     if (discountPrice) {
-          price = discountPrice.innerText;
-     } else price = ogPrice.innerText;
+          if (discountPrice) {
+               price = discountPrice.innerText;
+          } else price = ogPrice.innerText;
 
-     var scrapedProduct = {
-          title: title,
-          imageUrl: imageUrl,
-          availability: "IN_STOCK",
-          referenceUrl: window.location.href,
-          website: "Boohoo",
-          firstPrice: price,
-     };
+          var scrapedProduct = {
+               title: title,
+               imageUrl: imageUrl,
+               availability: "IN_STOCK",
+               referenceUrl: window.location.href,
+               website: "Boohoo",
+               firstPrice: price,
+          };
 
-     return scrapedProduct;
+          return scrapedProduct;
+     } catch (e) {
+          console.log(e);
+     }
 }
 
 function scrapeShein() {
-     var title = document.querySelector(".product-intro__head-name").innerText;
-     var price = document.querySelector(".product-intro__head-price").innerText;
-     var imageUrl = document.querySelector(".product-intro__main-item  img").src;
+     try {
+          var title = document.querySelector(".product-intro__head-name").innerText;
+          var price = document.querySelector(".product-intro__head-price").innerText;
+          var imageUrl = document.querySelector(".product-intro__main-item  img").src;
 
-     console.log(price);
+          var scrapedProduct = {
+               title: title,
+               imageUrl: imageUrl,
+               availability: "IN_STOCK",
+               referenceUrl: window.location.href,
+               website: "Shein",
+               firstPrice: price,
+          };
 
-     var scrapedProduct = {
-          title: title,
-          imageUrl: imageUrl,
-          availability: "IN_STOCK",
-          referenceUrl: window.location.href,
-          website: "Shein",
-          firstPrice: price,
-     };
-
-     return scrapedProduct;
+          return scrapedProduct;
+     } catch (e) {
+          console.log(e);
+     }
 }
 
 function scrapeOffice() {
-     var title = document.querySelector(".product__name").innerText;
-     var nonSale = document.querySelector(".price__price");
-     var salePrice = document.querySelector(".product__saleprice--now");
-     var imageUrl = document.querySelector(".product-grid img").src;
-     console.log(document.querySelector(".product-grid"));
-     console.log(document.querySelector(".product-grid img"));
+     try {
+          var title = document.querySelector(".product__name").innerText;
+          var nonSale = document.querySelector(".price__price");
+          var salePrice = document.querySelector(".product__saleprice--now");
+          var imageUrl = document.querySelector(".product-grid img").src;
 
-     var Brand = document.querySelector(".product__brand");
+          console.log(document.querySelector(".product-grid img"));
+          console.log(document.querySelector(".product-grid img").src);
+          var Brand = document.querySelector(".product__brand");
 
-     if (Brand) {
-          title = Brand.innerText + " - " + title;
+          if (Brand) {
+               title = Brand.innerText + " - " + title;
+          }
+          let price;
+          if (nonSale) {
+               price = nonSale.innerText;
+          } else if (salePrice) {
+               price = salePrice.innerText;
+          }
+          var scrapedProduct = {
+               title: title,
+               imageUrl: imageUrl,
+               availability: "IN_STOCK",
+               referenceUrl: window.location.href,
+               website: "Office",
+               firstPrice: price,
+          };
+
+          console.log(scrapedProduct);
+          return scrapedProduct;
+     } catch (e) {
+          console.log(e);
      }
-     let price;
-     if (nonSale) {
-          price = nonSale.innerText;
-     } else if (salePrice) {
-          price = salePrice.innerText;
-     }
-     var scrapedProduct = {
-          title: title,
-          imageUrl: imageUrl,
-          availability: "IN_STOCK",
-          referenceUrl: window.location.href,
-          website: "Office",
-          firstPrice: price,
-     };
-
-     console.log(scrapedProduct);
-     return scrapedProduct;
 }
 
 function scrapeUniqlo() {
-     var title = document.querySelector(".pdp__title").innerText;
-     var price = document.querySelector(".pdp-price-current").innerText;
-     var imageUrl = document.querySelector(".pdp__mainImg").src;
+     try {
+          var title = document.querySelector(".pdp__title").innerText;
+          var price = document.querySelector(".pdp-price-current").innerText;
+          var imageUrl = document.querySelector(".pdp__mainImg").src;
 
-     var scrapedProduct = {
-          title: title,
-          imageUrl: imageUrl,
-          availability: "IN_STOCK",
-          referenceUrl: window.location.href,
-          website: "Uniqlo",
-          firstPrice: price,
-     };
-     return scrapedProduct;
+          var scrapedProduct = {
+               title: title,
+               imageUrl: imageUrl,
+               availability: "IN_STOCK",
+               referenceUrl: window.location.href,
+               website: "Uniqlo",
+               firstPrice: price,
+          };
+          return scrapedProduct;
+     } catch (e) {
+          console.log(e);
+     }
 }
 
 function scrapeMatchesfashion() {
-     var designer = document.querySelector("span[data-testid='ProductMainDescription-designer-link']");
-     var title = document.querySelector("span[data-testid='ProductMainDescription-name']").innerText;
-     var price = document.querySelector("span[data-testid='ProductPrice-billing-price']").innerText;
-     var imageUrl = document.querySelector(".carousel__inner-slide img").src;
+     try {
+          var designer = document.querySelector("span[data-testid='ProductMainDescription-designer-link']");
+          var title = document.querySelector("span[data-testid='ProductMainDescription-name']").innerText;
+          var price = document.querySelector("span[data-testid='ProductPrice-billing-price']").innerText;
+          var imageUrl = document.querySelector(".carousel__inner-slide img").src;
 
-     if (designer) {
-          title = designer.innerText + " - " + title;
+          if (designer) {
+               title = designer.innerText + " - " + title;
+          }
+
+          var scrapedProduct = {
+               title: title,
+               imageUrl: imageUrl,
+               availability: "IN_STOCK",
+               referenceUrl: window.location.href,
+               website: "Matchesfashion",
+               firstPrice: price,
+          };
+          return scrapedProduct;
+     } catch (e) {
+          console.log(e);
      }
-
-     var scrapedProduct = {
-          title: title,
-          imageUrl: imageUrl,
-          availability: "IN_STOCK",
-          referenceUrl: window.location.href,
-          website: "Matchesfashion",
-          firstPrice: price,
-     };
-     return scrapedProduct;
 }
 
 // async function scrapeZaraHome() {

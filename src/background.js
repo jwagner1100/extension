@@ -96,19 +96,14 @@ browser.runtime.onMessage.addListener(function(request, sender, sendResponse) {
 //      }
 // });
 
-chrome.tabs.onUpdated.addListener(function(tabId, changeInfo, tab) {
-     // read changeInfo data and do something with it
-     // like send the new url to contentscripts.js
-
-     console.log(changeInfo);
-     if (changeInfo.status !== "complete" && changeInfo.status !== "loading") {
-          console.log("page url change");
-
-          setTimeout(() => {
-               // chrome.tabs.sendMessage(tabId, {
-               //      message: "restart",
-               //      url: changeInfo.url,
-               // });
-          }, 3000);
-     }
-});
+// chrome.tabs.onUpdated.addListener(function(tabId, changeInfo, tab) {
+// read changeInfo data and do something with it
+// like send the new url to contentscripts.js
+// console.log(changeInfo);
+// if (changeInfo.status !== "complete" && changeInfo.status !== "loading") {
+//      console.log("page url change");
+//      chrome.tabs.sendMessage(tabId, {
+//           message: "restart",
+//      });
+// }
+// });
