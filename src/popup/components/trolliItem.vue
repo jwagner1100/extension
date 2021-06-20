@@ -3,7 +3,7 @@
           <div class="columns is-mobile is-vcentered trolliItem">
                <div class="imgcol  " @click="openInTab">
                     <div class="productimg  ">
-                         <img :src="item.imageUrl" alt="" loading=lazy />
+                         <img :src="item.imageUrl" alt="" loading="lazy" />
                     </div>
                     <div class="shopimg">
                          <img v-if="item.website == 'Asos'" class="Asos" src="@/assets/logos/asos.png" alt="" />

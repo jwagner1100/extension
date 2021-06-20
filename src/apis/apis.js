@@ -77,4 +77,14 @@ export default {
 
           return res;
      },
+
+     async scrape(url) {
+          let token = await getToken();
+          const res = await axios.get(`https://api.yourtrolli.com/wishlist/product?url=${url}`, {
+               headers: {
+                    Authorization: "Bearer " + token,
+               },
+          });
+          return res;
+     },
 };
