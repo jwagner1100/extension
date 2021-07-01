@@ -98,23 +98,31 @@
 }
 
 #yourtolli-body #yourtolli-bottom {
+     text-align: left !important;
      margin-top: 2px !important;
 }
+
+#yourtolli-body #yourtolli-title-container {
+     /* background: yellow; */
+     display: flex;
+     align-items: center;
+}
 #yourtolli-body #yourtolli-title {
+     /* background: red; */
      width: 190px !important;
      /* background: red; */
      /* background: blue!important; */
      display: inline-block !important;
-     height: 50px !important;
+     max-height: 45px !important;
      overflow-y: hidden !important;
      overflow-x: hidden !important;
      color: black !important;
-     display: flex !important;
+     /* display: flex !important; */
 
-     align-items: center !important;
+     /* align-items: center !important; */
 
      font-size: 16.5px !important;
-
+     text-align: left !important;
      text-transform: capitalize !important;
      /* text-transform: lowercase !important; */
      /* font-weight: 600; */
@@ -133,6 +141,9 @@
      color: #949494 !important;
      font-weight: 400;
      display: inline;
+     text-transform: capitalize !important;
+     padding-left: 2px;
+     letter-spacing: 0.3px;
 }
 
 #yourtolli-body #yourtolli-price {
@@ -148,9 +159,12 @@
      display: inline-block !important;
 }
 
-#yourtolli-body #yourtolli-dropdown {
+#yourtolli-body #yourtolli-dropdown,
+#yourtolli-body select#yourtolli-dropdown {
+     color: black !important;
+     box-sizing: border-box !important;
      background-color: transparent !important;
-     padding: 4px 8px !important;
+     padding: 0px 8px !important;
      border: none !important;
      width: 100% !important;
      font-size: 15px !important;
@@ -161,8 +175,19 @@
      width: 148px !important;
      appearance: auto !important;
      margin-top: 0 !important;
+     height: 28px !important;
+     min-height: 28px !important;
+     max-height: 28px !important;
+     background: none !important;
+     font-weight: 500 !important;
+     text-align: left !important;
+     opacity: 1 !important;
+     display: inline !important;
+     position: initial !important;
+     visibility: visible !important;
 }
 #yourtolli-body #yourtolli-options {
+     text-align: left !important;
      background-color: transparent !important;
      font-family: "nunitosans", sans-serif !important;
 }
@@ -174,14 +199,18 @@
      max-width: 160px !important;
      padding-right: 10px !important;
      background: white !important;
-
+     font-weight: 400 !important;
      height: 30px !important;
+     font-weight: 500 !important;
 }
 #yourtolli-body #yourtolli-formcontainer {
      display: flex !important;
 }
 
-#yourtolli-body #yourtolli-addtotrollibtn {
+#yourtolli-body #yourtolli-addtotrollibtn,
+#yourtolli-addtotrollibtn[type="button"] {
+     letter-spacing: 0.5px !important;
+     text-align: center !important;
      margin-left: 5px !important;
      width: 130px !important;
      font-family: "nunitosans", sans-serif !important;
@@ -193,11 +222,16 @@
      text-transform: initial !important;
      cursor: pointer !important;
      padding: 0px !important;
-     height: 30px !important;
+
      font-weight: 500 !important;
+     margin-top: 0px !important;
+     height: 30px !important;
+     max-height: 30px !important;
+     min-height: 30px !important;
 }
 #yourtolli-body #yourtolli-addtotrollibtn.disabledbtn {
      background-color: grey !important;
      opacity: 0.5;
      color: white !important;
+     text-align: center !important;
 }

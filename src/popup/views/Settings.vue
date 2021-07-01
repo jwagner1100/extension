@@ -236,7 +236,7 @@
                               () => {}
                          );
 
-                         mixpanel.newBaset(basketname);
+                         mixpanel.newBasket(basketname);
                          this.newBasketName = "";
                     }
                },

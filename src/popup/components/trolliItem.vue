@@ -6,7 +6,7 @@
                          <img :src="item.imageUrl" alt="" loading="lazy" />
                     </div>
                     <div class="shopimg">
-                         <img v-if="item.website == 'Asos'" class="Asos" src="@/assets/logos/asos.png" alt="" />
+                         <!-- <img v-if="item.website == 'Asos'" class="Asos" src="@/assets/logos/asos.png" alt="" />
                          <img v-else-if="item.website == 'Currys'" class="Currys" src="@/assets/logos/currys.png" alt="" />
                          <img v-else-if="item.website == 'Amazon'" class="Amazon" src="@/assets/logos/amazon.png" alt="" />
                          <img v-else-if="item.website == 'Porter'" class="Porter" src="@/assets/logos/netaporter.png" alt="" />
@@ -28,10 +28,10 @@
                          <img v-else-if="item.website == 'Shein'" class="Shein" src="@/assets/logos/shein.png" alt="" />
                          <img v-else-if="item.website == 'Office'" class="Office" src="@/assets/logos/office.png" alt="" />
                          <img v-else-if="item.website == 'Uniqlo'" class="Uniqlo" src="@/assets/logos/uniqlo.png" alt="" />
-                         <img v-else-if="item.website == 'Matchesfashion'" class="Matchesfashion" src="@/assets/logos/matchesfashion.png" alt="" />
+                         <img v-else-if="item.website == 'Matchesfashion'" class="Matchesfashion" src="@/assets/logos/matchesfashion.png" alt="" /> -->
                     </div>
                </div>
-               <div class="column    ">
+               <div class="column   titlecol ">
                     <div class="basket">
                          <div class="baskettag">
                               <!-- <span>
@@ -70,12 +70,17 @@
                     </div>
 
                     <div class="productname capitalize" @click="openInTab">
-                         {{ item.title }}
+                         <span v-if="item.brand">{{ item.brand }} - </span> {{ item.title }}
                     </div>
+
+                    <div class="website capitalize">{{ item.website }}</div>
                </div>
-               <div class=" pricecol " @click="openInTab">
+               <div class="pricecol" @click="openInTab">
                     <template v-if="item.price && item.price != '0'">
-                         <div class="currentPrice">£{{ item.price | priceFormatter }}</div>
+                         <div class="currentPrice">
+                              <span v-if="item.currency">{{ item.currency }}</span
+                              >{{ item.price | priceFormatter }}
+                         </div>
 
                          <div class="previousPrice" v-if="item.firstPrice && item.price != item.firstPrice">
                               <span class="marker">
@@ -100,11 +105,17 @@
                                    </svg>
                               </span>
 
-                              <span class="crossedPrice">£{{ item.firstPrice | priceFormatter }}</span>
+                              <span class="crossedPrice"
+                                   ><span v-if="item.currency">{{ item.currency }}</span
+                                   >{{ item.firstPrice | priceFormatter }}</span
+                              >
                          </div>
                     </template>
                     <template v-else-if="item.firstPrice && item.firstPrice != '0'">
-                         <div class="currentPrice">£{{ item.firstPrice | priceFormatter }}</div>
+                         <div class="currentPrice">
+                              <span v-if="item.currency">{{ item.currency }}</span
+                              >{{ item.firstPrice | priceFormatter }}
+                         </div>
                     </template>
                </div>
                <div class="  deletecol  " @click.stop="deleteItem()">
@@ -180,10 +191,8 @@
                width: 105px;
                .productimg {
                     // background: blue;
-
                     width: 100% !important;
-
-                    height: 55px !important;
+                    height: 75px !important;
                     display: flex !important;
                     align-items: center !important;
                     overflow-y: hidden !important;
@@ -197,12 +206,12 @@
                          // display: block !important;
                          height: auto;
                          width: auto;
-                         max-height: 55px;
+                         max-height: 70px;
                          max-width: 100%;
                          margin: auto;
                     }
 
-                    margin-bottom: 5px;
+                    // margin-bottom: 5px;
                }
                .shopimg {
                     // background: red;
@@ -288,64 +297,72 @@
                }
           }
 
-          .basket {
-               .baskettag {
-                    cursor: pointer;
-                    text-transform: capitalize;
-                    background-color: #f5ddd6;
-                    width: auto;
+          .titlecol {
+               // background: red;
+               padding: 5px 10px 4px 0 !important;
+               .basket {
                     display: inline-block;
-                    font-size: 12.5px;
-                    padding: 0 5px;
-                    border-radius: 5px;
-                    font-weight: 500;
+                    height: auto;
+                    .baskettag {
+                         cursor: pointer;
+                         text-transform: capitalize;
+                         background-color: #f5ddd6;
+                         width: auto;
+                         display: inline-block;
+                         font-size: 12.5px;
+                         padding: 0 5px;
+                         border-radius: 5px;
+                         font-weight: 500;
+                         color: black;
+                         transition: background-color 0.3s;
+                         position: relative;
+                         // height: 20px;
+                         // width: 100px;
+
+                         // .basketDropdown {
+                         //      position: absolute;
+                         //      top: 0;
+                         //      height: 20px;
+                         //      width: 100px;
+                         //      z-index: 100;
+                         //      border: 1px solid red;
+                         // }
+                    }
+
+                    .basketname {
+                         display: inline-block;
+                    }
+                    .baskettag:hover {
+                         background-color: #fed0c3;
+                         // border: 1px dashed black;
+                    }
+
+                    svg {
+                         position: relative;
+                         top: 2px;
+                         margin-left: 3px;
+                    }
+               }
+               .productname {
+                    line-height: 20px;
+                    margin-top: 2px;
+                    font-size: 14.5px;
+                    max-height: 40px;
+
+                    overflow: hidden;
                     color: black;
-                    transition: background-color 0.3s;
-                    position: relative;
-                    // height: 20px;
-                    // width: 100px;
-
-                    // .basketDropdown {
-                    //      position: absolute;
-                    //      top: 0;
-                    //      height: 20px;
-                    //      width: 100px;
-                    //      z-index: 100;
-                    //      border: 1px solid red;
-                    // }
+                    font-weight: 600;
+                    cursor: pointer;
+                    width: 170px;
                }
 
-               .basketname {
-                    display: inline-block;
-               }
-               .baskettag:hover {
-                    background-color: #fed0c3;
-                    // border: 1px dashed black;
-               }
-
-               svg {
-                    position: relative;
-                    top: 2px;
-                    margin-left: 3px;
+               .website {
+                    font-size: 14px;
                }
           }
-          .productname {
-               line-height: 20px;
-               margin-top: 2px;
-               font-size: 14.5px;
-               height: 40px;
-               padding-right: 10px;
-               overflow: hidden;
-               color: black;
-               font-weight: 600;
-               cursor: pointer;
-               width: 170px;
-          }
-
           .pricecol {
                cursor: pointer;
                width: 80px !important;
-               height: 30px;
 
                .currentPrice {
                     font-size: 14.5px;

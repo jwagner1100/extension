@@ -89,12 +89,13 @@
                </div>
           </div>
 
-          <div class="addToTrolliItem " v-if="pageItem && pageItem.title">
+          <div class="addToTrolliItem " v-if="pageItem && pageItem.title && trolliBottomWidget">
                <div class="columns is-mobile  " style="padding:0">
                     <div class="imgcol">
                          <div class="productimg"><img :src="pageItem.imageUrl" alt="" /></div>
                          <div class="shopimg">
-                              <img v-if="pageItem.website == 'Asos'" class="Asos" src="@/assets/logos/asos.png" alt="" />
+                              <!-- {{pageItem.website}} -->
+                              <!-- <img v-if="pageItem.website == 'Asos'" class="Asos" src="@/assets/logos/asos.png" alt="" />
                               <img v-else-if="pageItem.website == 'Currys'" class="Currys" src="@/assets/logos/currys.png" alt="" />
                               <img v-else-if="pageItem.website == 'Amazon'" class="Amazon" src="@/assets/logos/amazon.png" alt="" />
                               <img v-else-if="pageItem.website == 'Porter'" class="Porter" src="@/assets/logos/netaporter.png" alt="" />
@@ -125,18 +126,21 @@
                                    class="Matchesfashion"
                                    src="@/assets/logos/matchesfashion.png"
                                    alt=""
-                              />
+                              /> -->
                          </div>
                     </div>
                     <div class="column is-9 " style="padding-left:10px !important;">
                          <div class="columns is-mobile">
                               <div class="titlecol ">
                                    <div class="productname capitalize ">
-                                        {{ pageItem.title }}
+                                        <span v-if="pageItem.brand">{{ pageItem.brand }} - </span> {{ pageItem.title }}
                                    </div>
                               </div>
                               <div class="column is-5 ">
-                                   <div class="price" v-if="pageItem.firstPrice">£{{ pageItem.firstPrice | priceFormatter }}</div>
+                                   <div class="price" v-if="pageItem.firstPrice">
+                                        <span v-if="pageItem.currency">{{ pageItem.currency }}</span
+                                        >{{ pageItem.firstPrice | priceFormatter }}
+                                   </div>
                               </div>
                          </div>
 
@@ -226,7 +230,7 @@
                //check if item page
 
                chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
-                    if (request.message === "pageHasItem" && this.trolliBottomWidget) {
+                    if (request.message === "pageHasItem") {
                          this.pageItem = request.data;
 
                          this.checkItemInBakset();
@@ -251,10 +255,15 @@
 
           methods: {
                async search() {
+                    console.log("searchngs");
                     if (this.searchText.length > 0) {
-                         let response = await apis.search(this.searchText);
-                         let searchResults = response.data;
-                         this.trolliItemsToShow = searchResults;
+                         try {
+                              console.log("searchngs started");
+                              let response = await apis.search(this.searchText);
+                              let searchResults = response.data;
+                              console.log("search", response);
+                              this.trolliItemsToShow = searchResults;
+                         } catch (e) {}
                     }
                },
 
@@ -329,6 +338,8 @@
                               referenceUrl: this.pageItem.referenceUrl,
                               firstPrice: this.pageItem.firstPrice,
                               website: this.pageItem.website,
+                              currency: this.pageItem.currency,
+                              brand: this.pageItem.brand,
                               category: this.selectedBasket,
                               notify: true,
                          };
@@ -355,31 +366,36 @@
                async checkItemInBakset() {
                     if (this.pageItem && this.pageItem.referenceUrl) {
                          this.itemInBasket = false;
+                         try {
+                              let response = await apis.checkItem(this.pageItem.referenceUrl);
 
-                         let response = await apis.checkItem(this.pageItem.referenceUrl);
+                              // console.log("check", response);
 
-                         if (response.data.check == true) {
-                              //item in trolli
-                              this.itemInBasket = true;
-                              this.selectedBasket = response.data.item.category;
-                         } else {
-                              this.itemInBasket = false;
-                         }
+                              if (response.data.check == true) {
+                                   //item in trolli
+                                   this.itemInBasket = true;
+                                   this.selectedBasket = response.data.item.category;
+                              } else {
+                                   this.itemInBasket = false;
+                              }
 
-                         // for (let i = 0; i < this.trolliItems.length; i++) {
-                         //      if (this.trolliItems[i].referenceUrl == this.pageItem.referenceUrl) {
-                         //           this.itemInBasket = true;
-                         //           this.selectedBasket = this.trolliItems[i].category;
-                         //           break;
-                         //      }
-                         // }
+                              // for (let i = 0; i < this.trolliItems.length; i++) {
+                              //      if (this.trolliItems[i].referenceUrl == this.pageItem.referenceUrl) {
+                              //           this.itemInBasket = true;
+                              //           this.selectedBasket = this.trolliItems[i].category;
+                              //           break;
+                              //      }
+                              // }
 
-                         if (!this.itemInBasket) {
-                              chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
-                                   var activeTab = tabs[0];
-                                   chrome.tabs.sendMessage(activeTab.id, { message: "currentPageItemRemoved" });
-                              });
-                         }
+                              if (!this.itemInBasket) {
+                                   chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
+                                        var activeTab = tabs[0];
+
+                                        console.log("remove item");
+                                        chrome.tabs.sendMessage(activeTab.id, { message: "currentPageItemRemoved" });
+                                   });
+                              }
+                         } catch (e) {}
                     }
                },
           },
@@ -505,8 +521,10 @@
                     width: 85px;
 
                     .productimg {
+                         // background: red;
+
                          width: 85px;
-                         height: 73px;
+                         height: 103px;
                          display: flex;
                          align-items: center;
                          overflow-y: hidden;
@@ -520,11 +538,11 @@
                               height: auto;
                               width: auto;
                               max-width: 85px;
-                              max-height: 73px;
+                              max-height: 103px;
 
                               margin: auto;
                          }
-                         margin-bottom: 10px;
+                         // margin-bottom: 10px;
                     }
 
                     .shopimg {
@@ -586,12 +604,13 @@
                     }
                }
                .titlecol {
+                    // background: yellow;
                     width: 180px;
+                    height: 44px;
                     display: flex;
                     align-items: center;
-
-                    height: 44px;
                     .productname {
+                         // background: red;
                          color: black;
                          max-height: 44px;
                          overflow-y: hidden;
